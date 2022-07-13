@@ -1,0 +1,231 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<style>
+    table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+    }
+
+    tr:nth-child(even) {
+        background-color: #dddddd;
+    }
+</style>
+
+
+
+<h2 id="content"></h2>
+<div class="input-show-sua">
+
+</div>
+<div class="input-show" style="display:flex; justify-content:space-around">
+</div>
+<table>
+    <thead>
+        <tr>
+            <td>
+                <div id="testid"></div>
+            </td>
+            <td>
+                <input placeholder="ClassName" id="name" required />
+            </td>
+            <td>
+                <select id="classid" onchange="idne();">
+                </select>
+            </td>
+            <td>
+                <input type="number" value="1900" placeholder="BirthYear" id="birthYear" required />
+            </td>
+            <td>
+                <input placeholder="Gender" id="gender" type="number" required />
+            </td>
+            <td>
+                <input placeholder="CreateTime(YYYY/MM/DD)" id="createTime" type="datetime-local" required min-length="6" />
+            </td>
+            <td>
+                <button onclick="okadd();">Thêm</button>
+            </td>
+        </tr>
+        <tr>
+            <th>TestId</th>
+            <th>Name</th>
+            <th>ClassId</th>
+            <th>BirthYear</th>
+            <th>Gender</th>
+            <th>CreateTime</th>
+            <th>Note</th>
+        </tr>
+
+    </thead>
+    <tbody id="tbody">
+        <tr>
+        </tr>
+    </tbody>
+</table>
+
+<br />
+<br />
+
+<script>
+    var apiLinkGetclass = '/api/Home/GetlistClass'
+    var getapiclass = async function () {
+        let rp = await fetch(apiLinkGetclass);
+        let rs = await rp.json();
+        console.log(rs)
+        for (let i = 0; i < rs.length; i++) {
+            $('#classid').append(`
+        <option value="${rs[i].ClassTestId}" >ClassId : ${rs[i].ClassTestId} , ClassName : ${rs[i].ClassName} , Quantity : ${rs[i].Quantity}</option>
+`);
+        }
+    }
+    getapiclass();
+
+    var idne = function () {
+        console.log($('#classid option:selected').val())
+    }
+    var apiLinkGet = '/api/Home/Getlist'
+    var getapi = async function () {
+        let rp = await fetch(apiLinkGet);
+        let rs = await rp.json();
+        console.log(rs)
+        for (let i = 0; i < rs.length; i++) {
+            $('#tbody').append(`
+<tr>
+<td class="TestId">${rs[i].TestId}</td>
+<td class="Name">${rs[i].Name}</td>
+<td class="ClassId">${rs[i].ClassName}</td>
+<td class="BirthYear">${rs[i].BirthYear}</td>
+<td class="Gender">${rs[i].Gender}</td>
+<td class="CreateTime">${rs[i].CreateTime}</td>
+<td><button class="sua" onclick="suaclasslist(this);" value="${rs[i].TestId}">Sửa</button>
+<button onclick="xoaclasslist(this);" value="${rs[i].TestId}">Xóa</button></td>
+</tr>
+`);
+        }
+    }
+    getapi();
+
+
+    var GenerateModel = function () {
+        var model = {
+            TestId: $('#testid').text(),
+            Name: $('#name').val(),
+            ClassId: $('#classid').val(),
+            BirthYear: $('#birthYear').val(),
+            Gender: $('#gender').val(),
+            CreateTime: $('#createTime').val()
+        }
+        return model;
+    }
+
+    var addclasslist = function () {
+
+    }
+    var suaclasslist = async function (cl) {
+@*        $('#testid').text($(rs).closest('tr').find('.TestId').text())
+        $('#name').val($(rs).closest('tr').find('.Name').text())
+        $('#classid').val($(rs).closest('tr').find('.ClassId').text())
+        $('#birthYear').val($(rs).closest('tr').find('.BirthYear').text())
+        $('#gender').val($(rs).closest('tr').find('.Gender').text())
+        $('#createTime').val($(rs).closest('tr').find('.CreateTime').text())
+*@
+        var Testid = $(cl).closest('tr').find('.TestId').text();
+        var apiLinkTestDetail = '/api/Home/Getdetail?id=' + Testid
+        let rp = await fetch(apiLinkTestDetail);
+        let rs = await rp.json();
+        console.log(rs)
+        $('#testid').text(rs[0].TestId);
+        $('#name').val(rs[0].Name);
+        $('#classid').val(rs[0].ClassId);
+        $('#birthYear').val(rs[0].BirthYear);
+        $('#gender').val(rs[0].Gender);
+        $('#createTime').val(rs[0].CreateTime);
+
+    }
+    var xoaclasslist = async function (rs) {
+        var id = $(rs).val();
+        console.log(id)
+        var apiLinkDelete = '/api/Home/DeleteTest?testid=' + id;
+        if (id !== "") {
+            var set = {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+            };
+            try {
+                const fetchResponse = await fetch(apiLinkDelete, set);
+                let rs = await fetchResponse.json();
+                if (rs === 'xoa ok') {
+                    alert('Xóa OK nè cu !');
+                    location.reload();
+                }
+            } catch (e) {
+                return e;
+            }
+        }
+    }
+
+
+    var apiLinkPost = '/api/Home/CreateTest'
+    var apiLinkEdit = '/api/Home/EditTest'
+    var okadd = async function () {
+        var id = $('#testid').text();
+        if (id === "") {
+            let model = GenerateModel();
+            var set = {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(model)
+            };
+            try {
+                const fetchResponse = await fetch(apiLinkPost, set);
+                let rs = await fetchResponse.json();
+                if (rs === 'ok') {
+                    alert('OK nè cu !');
+                    location.reload();
+                }
+            } catch (e) {
+                return e;
+            }
+        }
+        if (id !== "") {
+            let model = GenerateModel();
+            var set = {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(model)
+            };
+            try {
+                const fetchResponse = await fetch(apiLinkEdit, set);
+                let rs = await fetchResponse.json();
+                if (rs === 'sua ok') {
+                    alert('Sửa OK nè cu !');
+                    location.reload();
+                }
+            } catch (e) {
+                return e;
+            }
+        }
+    }
+
+
+
+
+</script>

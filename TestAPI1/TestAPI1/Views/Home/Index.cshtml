@@ -1,0 +1,82 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2 id="content"></h2>
+
+<div class="input-show">
+
+</div>
+
+<select id="select" onchange="showbig();">
+    <option selected disabled>Chọn ClassList</option>
+</select>
+<button onclick="addclasslist();">Thêm</button>
+<br />
+<br />
+<button>Sửa</button>
+<button>Xóa</button>
+
+<script>
+    var apiLinkGet = '/api/Home/GetlistClass'
+    var getapi = async function () {
+        let rp = await fetch(apiLinkGet);
+        let rs = await rp.json();
+        for (let i = 0; i < rs.length; i++) {
+            $('#select').append(`
+        <option value="${rs[i].ClassTestId}" >ClassName : ${rs[i].ClassName} , Quantity : ${rs[i].Quantity}</option>
+`);
+        }
+        $('#content').text($('#select option:selected').text());
+    }
+    getapi();
+
+    var showbig = function () {
+        console.log($('#select option:selected').val())
+        console.log($('#select option:selected').text())
+        $('#content').text($('#select option:selected').text());
+    }
+
+    var GenerateModel = function () {
+        var model = {
+            ClassName: $('#name').val(),
+            Quantity: $('#Quantity').val()
+        }
+        return model;
+    }
+
+    var addclasslist = function () {
+        $('.input-show').append(`<input placeholder="ClassName" id="name"/>
+    <input  type="number" placeholder="Quantity" id="Quantity"/><button onclick="okadd();">ok</button>`)
+    }
+
+
+
+    var apiLinkPost = '/api/Home/CreateClassTest'
+    var okadd = async function () {
+        let model = GenerateModel();
+        var set = {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(model)
+        };
+        try {
+            const fetchResponse = await fetch(apiLinkPost, set);
+            let rs = await fetchResponse.json();
+            if (rs === 'ok') {
+                alert('OK nè cu !');
+                location.reload();
+            }
+        } catch (e) {
+            return e;
+        }
+    }
+
+     
+
+
+</script>
